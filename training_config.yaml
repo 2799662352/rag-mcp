@@ -1,0 +1,208 @@
+# 🎯 BGE-M3 Danbooru训练配置文件
+# ================================
+
+# 模型配置
+model:
+  name: "BAAI/bge-m3"
+  device: "cuda"  # cuda/cpu/auto
+  use_fp16: true
+  normalize_embeddings: true
+  max_length: 512
+  
+  # BGE-M3特有配置
+  return_dense: true      # Dense向量（传统embedding）
+  return_sparse: true     # Sparse向量（关键词匹配）
+  return_colbert_vecs: true  # ColBERT向量（细粒度交互）
+
+# 数据配置
+data:
+  # 输入数据路径
+  input_file: "danbooru_tags.jsonl"
+  
+  # 数据源类型
+  source_type: "local"  # local/api/tags
+  source_path: "danbooru2024_complete.parquet"
+  data_format: "parquet"  # parquet/csv/json/txt
+  
+  # 数据处理
+  max_items: null  # null表示处理所有数据
+  shuffle: true
+  test_split: 0.1
+  
+  # 文本预处理
+  max_text_length: 512
+  min_text_length: 5
+  remove_duplicates: true
+
+# 训练配置
+training:
+  # 批处理设置
+  batch_size: 32
+  eval_batch_size: 64
+  gradient_accumulation_steps: 1
+  
+  # 优化器设置
+  learning_rate: 2e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  
+  # 训练过程
+  num_epochs: 3
+  save_steps: 500
+  eval_steps: 500
+  logging_steps: 100
+  
+  # 早停
+  early_stopping_patience: 3
+  metric_for_best_model: "eval_loss"
+  
+  # 输出目录
+  output_dir: "artifacts/training/bge_m3_danbooru"
+  save_total_limit: 3
+
+# ChromaDB向量存储配置
+vector_store:
+  db_directory: "artifacts/vector_stores/chroma_db"
+  collection_name_prefix: "danbooru_bge_m3"
+  embedding_function: "custom_bge_m3"
+  
+  # ChromaDB设置
+  distance_metric: "cosine"  # cosine/l2/ip
+  hnsw_space: "cosine"
+  
+  # 索引配置
+  ef_construction: 200
+  ef_search: 100
+  max_connections: 16
+
+# 硬件配置
+hardware:
+  # GPU设置
+  gpu_memory_threshold: 8e9  # 8GB
+  use_mixed_precision: true
+  dataloader_num_workers: 4
+  
+  # 内存管理
+  max_memory_usage: 0.8  # 80%最大内存使用
+  garbage_collect_frequency: 100  # 每100步执行一次垃圾回收
+  
+  # CUDA设置
+  cuda_launch_blocking: false
+  allow_tf32: true
+
+# 日志和监控
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "artifacts/logs/training.log"
+  
+  # 监控配置
+  enable_tensorboard: true
+  tensorboard_dir: "artifacts/logs/tensorboard"
+  
+  # 性能监控
+  monitor_gpu_memory: true
+  monitor_training_time: true
+  log_model_parameters: true
+
+# 验证和测试
+evaluation:
+  # 评估数据集
+  eval_dataset_size: 1000
+  test_queries: [
+    "1girl, anime style",
+    "landscape, detailed background", 
+    "portrait, high quality",
+    "school uniform, character design",
+    "fantasy art, digital painting"
+  ]
+  
+  # 评估指标
+  metrics: ["loss", "accuracy", "recall@k"]
+  recall_k_values: [1, 5, 10, 20]
+  
+  # 评估设置
+  eval_batch_size: 64
+  eval_accumulation_steps: 1
+
+# 部署配置
+deployment:
+  # 模型导出
+  export_format: "safetensors"
+  export_path: "artifacts/models/final_model"
+  
+  # 服务配置
+  server_port: 8000
+  server_host: "0.0.0.0"
+  max_concurrent_requests: 10
+  
+  # 缓存设置
+  enable_cache: true
+  cache_size: 1000
+  cache_ttl: 3600  # 1小时
+
+# 实验配置
+experiment:
+  # 实验名称和版本
+  name: "danbooru_bge_m3_v1"
+  version: "1.0.0"
+  description: "BGE-M3模型在Danbooru数据集上的微调实验"
+  
+  # 随机种子
+  seed: 42
+  
+  # 超参数搜索
+  hyperparameter_search: false
+  search_space:
+    learning_rate: [1e-5, 2e-5, 5e-5]
+    batch_size: [16, 32, 64]
+    num_epochs: [2, 3, 5]
+
+# 安全和合规
+security:
+  # 内容过滤
+  enable_content_filter: true
+  nsfw_threshold: 0.8
+  
+  # 数据隐私
+  anonymize_logs: true
+  data_retention_days: 30
+  
+  # 访问控制
+  require_api_key: false
+  rate_limit: 100  # 每分钟请求数
+
+# 高级功能
+advanced:
+  # 三重向量功能
+  use_triple_vectors: true
+  dense_weight: 0.4
+  sparse_weight: 0.3
+  colbert_weight: 0.3
+  
+  # 智能推荐
+  enable_smart_recommendations: true
+  recommendation_cache_size: 5000
+  
+  # 多语言支持
+  multilingual: true
+  supported_languages: ["zh", "en", "ja"]
+  
+  # 实验性功能
+  experimental_features:
+    dynamic_batching: false
+    adaptive_learning_rate: false
+    knowledge_distillation: false
+
+# 故障排除
+troubleshooting:
+  # 常见问题解决
+  auto_fix_memory_issues: true
+  auto_reduce_batch_size: true
+  fallback_to_cpu: true
+  
+  # 调试模式
+  debug_mode: false
+  verbose_logging: false
+  save_intermediate_results: false
