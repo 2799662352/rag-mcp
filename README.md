@@ -136,11 +136,49 @@ python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}')"
 pip install -r requirements.txt
 
 # 4. 一键启动训练（自动化流程）
-chmod +x scripts/run_training.sh
-./scripts/run_training.sh
+# BGE-M3向量化训练 （上古神器
+python vectorizer_optimized.py \
+    --input danbooru_processed/all_danbooru_tags.jsonl \
+    --model BAAI/bge-m3 \
+    --db artifacts/vector_stores/danbooru_bge_m3 \
+    --batch-size 32
+
+# 3060 12g 8h完成 4090 2小时
+python vectorizer_optimized.py \
+    --input danbooru_processed/all_danbooru_tags.jsonl \
+    --model BAAI/bge-m3 \
+    --db artifacts/vector_stores/danbooru_bge_m3 \
+    --batch-size 64 \
+    --gpu-optimization
+
+# 中途退出 继续训练
+python vectorizer_optimized.py \
+    --input danbooru_processed/all_danbooru_tags.jsonl \
+    --model BAAI/bge-m3 \
+    --db artifacts/vector_stores/danbooru_bge_m3 \
+    --batch-size 32 \
+    --resume-from checkpoints/latest_checkpoint.pkl
 
 # 5. 启动生产服务器
 python danbooru_prompt_server_v2_minimal.py
+
+mcp部署
+{
+  "mcpServers": {
+    "danbooru_enhanced": {
+      "command": "C:\\Users\\27996\\miniconda3\\envs\\pytorch-gpu\\python.exe",
+      "args": [
+        "D:\\tscrag\\rag-mcp\\danbooru_prompt_server_v2_minimal.py",
+        "--database-path",
+        "D:\\tscrag\\artifacts\\vector_stores\\chroma_db",
+        "--collection-name",
+        "ultimate_danbooru_dataset_bge-m3",
+        "--use-fp16",
+        "--auto-init"
+      ]
+    }
+  }
+}
 ```
 
 ### Docker快速部署
