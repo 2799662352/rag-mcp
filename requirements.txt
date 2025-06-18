@@ -1,0 +1,31 @@
+# Core Dependencies
+fastmcp>=0.1.0
+torch>=2.0.0
+transformers>=4.30.0
+FlagEmbedding>=1.2.0
+
+# Database and Storage
+chromadb>=0.4.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Web Framework
+fastapi>=0.100.0
+uvicorn>=0.22.0
+pydantic>=2.0.0
+
+# Utilities
+PyYAML>=6.0
+requests>=2.31.0
+tqdm>=4.65.0
+colorama>=0.4.6
+
+# Optional: GPU Acceleration
+# torch>=2.0.0+cu118
+# For CUDA 11.8 support, install with:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Development Dependencies (Optional)
+# pytest>=7.0.0
+# black>=23.0.0
+# flake8>=6.0.0
